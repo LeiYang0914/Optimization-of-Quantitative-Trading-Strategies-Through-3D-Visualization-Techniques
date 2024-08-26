@@ -40,7 +40,6 @@ def macd_strategy(data, fast_length=12, slow_length=26):
     data['Number of Trades'] = ((data['Position (Long Short)'] != 0) & (data['Position (Long Short)'] != data['Position (Long Short)'].shift(1))).cumsum()
 
     return data
-    pass
 
 def moving_avg_cross_strategy(data, fast_length=9, slow_length=18):
     """
@@ -90,12 +89,49 @@ def moving_avg_cross_strategy(data, fast_length=9, slow_length=18):
     
     return data
 
-    pass
 
 # Define the performance metrics function
 def performance_metrics(data, timeframe):
-    # (Implement the performance metrics calculation here)
-    pass
+    """
+    This function calculates the performance metrics for the given strategy for different timeframes.
+
+    Parameters:
+    data (pd.DataFrame): DataFrame containing 'PnL (Long Short)', 'Drawdown (Long Short)', and 'Number of Trades'.
+    timeframe (str): The timeframe of the data as a string (e.g., "1H", "1Day", "45Min").
+
+    Returns:
+    dict: Dictionary containing Sharpe Ratio, Average Return, Maximum Drawdown, Number of Trades, Calmar Ratio, and Profit/Loss Ratio.
+    """
+    
+    # Look up the number of periods per year based on the timeframe
+    periods_per_year = timeframe_mapping.get(timeframe, None)
+
+    if periods_per_year is None:
+        raise ValueError("Invalid timeframe. Please choose from the following: " + ", ".join(timeframe_mapping.keys()))
+
+    # Sharpe Ratio calculation
+    sharpe_ratio = (data['PnL (Long Short)'].mean() / 
+                    data['PnL (Long Short)'].std()) * np.sqrt(periods_per_year)
+
+    # Average Return calculation
+    average_return = data['PnL (Long Short)'].mean() * periods_per_year
+
+    # Maximum Drawdown calculation
+    maximum_drawdown = data['Drawdown (Long Short)'].max()
+
+    # Calmar Ratio calculation
+    calmar_ratio = average_return / abs(maximum_drawdown) if maximum_drawdown != 0 else np.nan
+
+    # Number of Trades
+    number_of_trades = data['Number of Trades'].max()
+
+    return {
+        'Sharpe Ratio': sharpe_ratio,
+        'Average Return': average_return * 100,
+        'Maximum Drawdown': maximum_drawdown * 100,
+        'Calmar Ratio': calmar_ratio,
+        'Number of Trades': number_of_trades 
+    }
 
 # Define the search spaces for Bayesian Optimization
 strategy_params = {
