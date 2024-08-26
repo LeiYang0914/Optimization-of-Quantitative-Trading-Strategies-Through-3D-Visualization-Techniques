@@ -9,11 +9,87 @@ from sklearn.model_selection import ParameterGrid
 
 # Define the strategies
 def macd_strategy(data, fast_length=12, slow_length=26):
-    # (Implement the MACD strategy here)
+    # Define a fixed macd_length
+    macd_length = 5
+
+    # Calculate the MACD and its signal line
+    data['MACD'] = ta.trend.ema_indicator(data['Close'], window=fast_length) - ta.trend.ema_indicator(data['Close'], window=slow_length)
+    data['Signal'] = ta.trend.ema_indicator(data['MACD'], window=macd_length)
+    data['Delta'] = data['MACD'] - data['Signal']
+
+    # Generate signals
+    data['Signal_Long'] = np.where((data['Delta'].shift(1) < 0) & (data['Delta'] > 0), 1, 0)
+    data['Signal_Short'] = np.where((data['Delta'].shift(1) > 0) & (data['Delta'] < 0), -1, 0)
+
+    data['Position (Long Short)'] = data['Signal_Long'] + data['Signal_Short']
+
+    # Define trading fees
+    taker_fee = 0.00055  # 0.055%
+
+    # Calculate PnL with fees, Cumulative PnL, and Drawdown
+    data['PnL (Long Short)'] = data['Position (Long Short)'].shift(1) * (data['Close'] / data['Close'].shift(1) - 1)
+    
+    # Determine if the trade was a maker or taker (for simplicity, we'll assume all trades are taker trades)
+    data['PnL (Long Short) with Fees'] = data['PnL (Long Short)'] - (data['Position (Long Short)'].shift(1) * taker_fee)
+    
+    data['Cumulative PnL (Long Short)'] = data['PnL (Long Short) with Fees'].cumsum()
+    data['Cumulative Max'] = data['Cumulative PnL (Long Short)'].cummax()
+    data['Drawdown (Long Short)'] = data['Cumulative Max'] - data['Cumulative PnL (Long Short)']
+
+    # Calculate Number of Trades
+    data['Number of Trades'] = ((data['Position (Long Short)'] != 0) & (data['Position (Long Short)'] != data['Position (Long Short)'].shift(1))).cumsum()
+
+    return data
     pass
 
 def moving_avg_cross_strategy(data, fast_length=9, slow_length=18):
-    # (Implement the Moving Average Cross strategy here)
+    """
+    Apply the Moving Average Cross strategy on a given DataFrame.
+    
+    Parameters:
+    - data (pd.DataFrame): DataFrame with a 'Close' price column.
+    - fast_length (int): Fast moving average window length.
+    - slow_length (int): Slow moving average window length.
+    
+    Returns:
+    - data (pd.DataFrame): DataFrame with MA strategy columns and cumulative returns.
+    """
+    # Calculate fast and slow moving averages
+    data['fast_ma'] = ta.trend.SMAIndicator(close=data['Close'], window=fast_length).sma_indicator()
+    data['slow_ma'] = ta.trend.SMAIndicator(close=data['Close'], window=slow_length).sma_indicator()
+    
+    # Generate trading signals
+    data['long_signal'] = (data['fast_ma'] > data['slow_ma']) & (data['fast_ma'].shift(1) <= data['slow_ma'].shift(1))
+    data['short_signal'] = (data['fast_ma'] < data['slow_ma']) & (data['fast_ma'].shift(1) >= data['slow_ma'].shift(1))
+    
+    # Initialize positions
+    data['Position (Long Short)'] = 0
+    data.loc[data['long_signal'], 'Position (Long Short)'] = 1
+    data.loc[data['short_signal'], 'Position (Long Short)'] = -1
+    
+    # Forward fill positions
+    data['Position (Long Short)'] = data['Position (Long Short)'].replace(0, pd.NA).ffill().fillna(0)
+    
+    # Define trading fees
+    taker_fee = 0.00055  # 0.055%
+
+    # Calculate strategy returns with fees
+    data['PnL (Long Short)'] = data['Position (Long Short)'].shift(1) * data['Close'].pct_change()
+    data['PnL (Long Short) with Fees'] = data['PnL (Long Short)'] - (abs(data['Position (Long Short)'].shift(1) - data['Position (Long Short)']) * taker_fee)
+
+    # Calculate cumulative returns
+    data['Cumulative PnL (Long Short)'] = data['PnL (Long Short) with Fees'].cumsum()
+    
+    # Calculate drawdown
+    data['Cumulative Max'] = data['Cumulative PnL (Long Short)'].cummax()
+    data['Drawdown (Long Short)'] = data['Cumulative Max'] - data['Cumulative PnL (Long Short)']
+    
+    # Calculate number of trades
+    data['Trade Entry'] = (data['Position (Long Short)'] != 0) & (data['Position (Long Short)'] != data['Position (Long Short)'].shift(1))
+    data['Number of Trades'] = data['Trade Entry'].cumsum()
+    
+    return data
+
     pass
 
 # Define the performance metrics function
