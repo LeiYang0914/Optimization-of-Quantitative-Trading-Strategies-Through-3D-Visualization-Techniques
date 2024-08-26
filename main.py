@@ -19,6 +19,39 @@ import seaborn as sns
 import warnings
 warnings.filterwarnings("ignore")
 
+# Custom CSS for enhancing the UI
+st.markdown("""
+    <style>
+        .big-font {
+            font-size:30px !important;
+            color: #FFA500;
+        }
+        .header-font {
+            font-size:24px !important;
+            font-weight: bold;
+            color: #FF4500;
+        }
+        .metrics-box {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .metrics-box div {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+        .accordion .streamlit-expanderHeader {
+            font-weight: bold;
+            color: #FFA500;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
 # Define the strategies
 def macd_strategy(data, fast_length=12, slow_length=26):
     # Define a fixed macd_length
@@ -164,13 +197,14 @@ strategy_params = {
 }
 
 # Page Title
-st.title("Parameter Optimization UI")
+st.markdown('<p class="big-font">Parameter Optimization UI</p>', unsafe_allow_html=True)
 
 # 1. Upload a CSV file
 uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 if uploaded_file is not None:
     data = pd.read_csv(uploaded_file)
     st.write("File uploaded successfully!")
+    st.write(data.head())
 else:
     st.warning("Please upload a CSV file to proceed.")
     st.stop()
@@ -257,7 +291,7 @@ if st.sidebar.button("Run Optimization"):
             best_result = strategy_function(data.copy(), **best_params)
 
     # 5. Show the 3D plot
-    st.write("### Parameter Optimization 3D Graph")
+    st.markdown('<p class="header-font">Parameter Optimization 3D Graph</p>', unsafe_allow_html=True)
     if best_params:
         fig = go.Figure(data=[go.Scatter3d(
             x=x_vals,
@@ -287,7 +321,7 @@ if st.sidebar.button("Run Optimization"):
         st.plotly_chart(fig)
 
     # 6. Show the Best parameter combination and Sharpe ratio
-    st.write("### Best Parameter Combination:")
+    st.markdown('<p class="header-font">Best Parameter Combination</p>', unsafe_allow_html=True)
     if best_params:
         st.write(f"**Best Parameters:** {best_params}")
         st.write(f"**Sharpe Ratio:** {sharpe_ratio}")
@@ -295,9 +329,30 @@ if st.sidebar.button("Run Optimization"):
         st.write("Run optimization to see results.")
 
     # 7. Show performance metrics
-    st.write("### Performance Metrics:")
+    st.markdown('<p class="header-font">Performance Metrics</p>', unsafe_allow_html=True)
     metrics = performance_metrics(best_result, selected_timeframe)
-    st.write(f"**Average Return:** {metrics.get('Average Return', 'N/A')}")
-    st.write(f"**Maximum Drawdown:** {metrics.get('Maximum Drawdown', 'N/A')}")
-    st.write(f"**Calmar Ratio:** {metrics.get('Calmar Ratio', 'N/A')}")
-    st.write(f"**Number of Trades:** {metrics.get('Number of Trades', 'N/A')}")
+    st.write('<div class="metrics-box">', unsafe_allow_html=True)
+    st.write(f'<div><h3>Average Return</h3><p>{metrics.get("Average Return", "N/A")}</p></div>', unsafe_allow_html=True)
+    st.write(f'<div><h3>Maximum Drawdown</h3><p>{metrics.get("Maximum Drawdown", "N/A")}</p></div>', unsafe_allow_html=True)
+    st.write(f'<div><h3>Calmar Ratio</h3><p>{metrics.get("Calmar Ratio", "N/A")}</p></div>', unsafe_allow_html=True)
+    st.write(f'<div><h3>Number of Trades</h3><p>{metrics.get("Number of Trades", "N/A")}</p></div>', unsafe_allow_html=True)
+    st.write('</div>', unsafe_allow_html=True)
+
+# Add expandable sections for additional charts and plots
+with st.expander("Candle Chart"):
+    st.write("Add your candle chart code here.")
+
+with st.expander("Equity Curve"):
+    st.write("Add your equity curve plot code here.")
+
+with st.expander("Sharpe Ratio"):
+    st.write("Add your Sharpe Ratio plot code here.")
+
+with st.expander("Monte Carlo"):
+    st.write("Add your Monte Carlo simulation code here.")
+
+with st.expander("Heat Map"):
+    st.write("Add your heat map plot code here.")
+
+with st.expander("Surface Plot"):
+    st.write("Add your surface plot code here.")
