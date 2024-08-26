@@ -371,15 +371,16 @@ if st.sidebar.button("Run Optimization"):
     else:
         st.write("Run optimization to see results.")
 
-    # 6. Show performance metrics
-    st.markdown('<p class="header-font">Performance Metrics</p>', unsafe_allow_html=True)
-    metrics = performance_metrics(best_result, selected_timeframe)
-    st.write('<div class="metrics-box">', unsafe_allow_html=True)
-    st.write(f'<div><h3>Average Return</h3><p>{metrics.get("Average Return", "N/A")}</p></div>', unsafe_allow_html=True)
-    st.write(f'<div><h3>Maximum Drawdown</h3><p>{metrics.get("Maximum Drawdown", "N/A")}</p></div>', unsafe_allow_html=True)
-    st.write(f'<div><h3>Calmar Ratio</h3><p>{metrics.get("Calmar Ratio", "N/A")}</p></div>', unsafe_allow_html=True)
-    st.write(f'<div><h3>Number of Trades</h3><p>{metrics.get("Number of Trades", "N/A")}</p></div>', unsafe_allow_html=True)
-    st.write('</div>', unsafe_allow_html=True)
+    # 6. Show performance metrics inside the "Sharpe Ratio" expander
+    with st.expander("Sharpe Ratio"):
+        st.markdown('<p class="header-font">Performance Metrics</p>', unsafe_allow_html=True)
+        metrics = performance_metrics(best_result, selected_timeframe)
+        st.write('<div class="metrics-box">', unsafe_allow_html=True)
+        st.write(f'<div><h3>Average Return</h3><p>{metrics.get("Average Return", "N/A"):.2f}%</p></div>', unsafe_allow_html=True)
+        st.write(f'<div><h3>Maximum Drawdown</h3><p>{metrics.get("Maximum Drawdown", "N/A"):.2f}%</p></div>', unsafe_allow_html=True)
+        st.write(f'<div><h3>Calmar Ratio</h3><p>{metrics.get("Calmar Ratio", "N/A"):.4f}</p></div>', unsafe_allow_html=True)
+        st.write(f'<div><h3>Number of Trades</h3><p>{metrics.get("Number of Trades", "N/A")}</p></div>', unsafe_allow_html=True)
+        st.write('</div>', unsafe_allow_html=True)
 
 # Add expandable sections for additional charts and plots
 with st.expander("Candle Chart"):
@@ -387,9 +388,6 @@ with st.expander("Candle Chart"):
 
 with st.expander("Equity Curve"):
     st.write("Add your equity curve plot code here.")
-
-with st.expander("Sharpe Ratio"):
-    st.write("Add your Sharpe Ratio plot code here.")
 
 with st.expander("Monte Carlo"):
     st.write("Add your Monte Carlo simulation code here.")
