@@ -381,15 +381,10 @@ if st.sidebar.button("Run Optimization"):
         st.write(f'<div><h3>Number of Trades</h3><p>{metrics.get("Number of Trades", "N/A")}</p></div>', unsafe_allow_html=True)
         st.write('</div>', unsafe_allow_html=True)
 
-# Add expandable sections for additional charts and plots
-with st.expander("Candle Chart"):
-    st.write("Add your candle chart code here.")
 
 with st.expander("Equity Curve"):
     st.write("Add your equity curve plot code here.")
 
-with st.expander("Monte Carlo"):
-    st.write("Add your Monte Carlo simulation code here.")
 
 with st.expander("Heat Map"):
     st.write("Add your heat map plot code here.")
