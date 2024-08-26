@@ -1,10 +1,43 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-from bayes_opt import BayesianOptimization
-from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import RandomForestRegressor
 import numpy as np
+import plotly.graph_objects as go
+from skopt import gp_minimize
+from skopt.space import Integer
+from skopt.utils import use_named_args
+from sklearn.model_selection import ParameterGrid
+
+# Define the strategies
+def macd_strategy(data, fast_length=12, slow_length=26):
+    # (Implement the MACD strategy here)
+    pass
+
+def moving_avg_cross_strategy(data, fast_length=9, slow_length=18):
+    # (Implement the Moving Average Cross strategy here)
+    pass
+
+# Define the performance metrics function
+def performance_metrics(data, timeframe):
+    # (Implement the performance metrics calculation here)
+    pass
+
+# Define the search spaces for Bayesian Optimization
+strategy_params = {
+    'MACD': {
+        'strategy': macd_strategy,
+        'space': [
+            Integer(5, 31, name='fast_length'),
+            Integer(20, 51, name='slow_length')
+        ]
+    },
+    'Moving Average Cross': {
+        'strategy': moving_avg_cross_strategy,
+        'space': [
+            Integer(5, 21, name='fast_length'),
+            Integer(20, 51, name='slow_length')
+        ]
+    }
+}
 
 # Page Title
 st.title("Parameter Optimization UI")
@@ -20,97 +53,128 @@ else:
     st.stop()
 
 # 2. Choose a timeframe
-st.sidebar.header("Choose Timeframe")
-timeframes = data.columns  # Assuming columns represent different timeframes
+timeframe_mapping = {
+    "1Min": 365 * 24 * 60,
+    "5Min": 365 * 24 * 60 / 5,
+    "15Min": 365 * 24 * 60 / 15,
+    "30Min": 365 * 24 * 60 / 30,
+    "45Min": 365 * 24 * 60 / 45,
+    "1H": 365 * 24,
+    "4H": 365 * 24 / 4,
+    "8H": 365 * 24 / 8,
+    "12H": 365 * 24 / 12,
+    "1Day": 365,
+    "1Week": 365 / 7,
+    "1Month": 12
+}
+
+timeframes = list(timeframe_mapping.keys())
 selected_timeframe = st.sidebar.selectbox("Select Timeframe", timeframes)
 
-# 3. Choose optimization method
-st.sidebar.header("Choose Optimization Method")
+# 3. Choose the strategy
+strategy_choice = st.sidebar.selectbox("Select Strategy", list(strategy_params.keys()))
+
+# 4. Choose optimization method
 optimization_method = st.sidebar.radio(
     "Optimization Method",
     ("Bayesian Optimization", "Permutation Testing (Grid Search CV)")
 )
 
-# Placeholder for the results
+# Placeholder for results
 best_params = {}
 sharpe_ratio = None
 
 # Perform the selected optimization
 if st.sidebar.button("Run Optimization"):
-    if optimization_method == "Bayesian Optimization":
-        # Example: Define your function to optimize here
-        def target_function(param1, param2):
-            # Dummy objective function - replace with your real function
-            return -((param1 - 2) ** 2 + (param2 - 3) ** 2)
+    strategy_info = strategy_params[strategy_choice]
+    strategy_function = strategy_info['strategy']
+    space = strategy_info['space']
 
-        optimizer = BayesianOptimization(
-            f=target_function,
-            pbounds={'param1': (0, 5), 'param2': (0, 5)},
-            verbose=2,
-            random_state=1,
-        )
-        optimizer.maximize(init_points=2, n_iter=10)
-        best_params = optimizer.max['params']
-        sharpe_ratio = optimizer.max['target']
+    if optimization_method == "Bayesian Optimization":
+        @use_named_args(space)
+        def objective(**params):
+            result = strategy_function(data.copy(), **params)
+            metrics = performance_metrics(result, selected_timeframe)
+            if np.isnan(metrics['Sharpe Ratio']):
+                return 0
+            return -metrics['Sharpe Ratio']
+
+        res = gp_minimize(objective, space, n_calls=50, random_state=0)
+        best_params = {dim.name: res.x[i] for i, dim in enumerate(space)}
+        best_result = strategy_function(data.copy(), **best_params)
+        sharpe_ratio = -res.fun
+
+        # Extract the evaluated points and corresponding negative Sharpe Ratios
+        x_vals = [point[0] for point in res.x_iters]
+        y_vals = [point[1] for point in res.x_iters]
+        z_vals = [-val for val in res.func_vals]
 
     elif optimization_method == "Permutation Testing (Grid Search CV)":
-        # Example: Grid Search with RandomForest
         param_grid = {
-            'param1': np.arange(0, 5, 0.5),
-            'param2': np.arange(0, 5, 0.5),
+            dim.name: list(range(dim.bounds[0], dim.bounds[1] + 1, 5))
+            for dim in space
         }
-        grid_search = GridSearchCV(RandomForestRegressor(), param_grid, cv=5)
-        grid_search.fit(data[selected_timeframe].values.reshape(-1, 1), data['target'])  # Assuming 'target' is the label
-        best_params = grid_search.best_params_
-        sharpe_ratio = grid_search.best_score_
 
-# 4. Show the 3D plot
-st.write("### Parameter Optimization 3D Graph")
-if best_params:
-    # Dummy data for 3D plot - replace with your actual data
-    x_data = np.linspace(0, 5, 10)
-    y_data = np.linspace(0, 5, 10)
-    z_data = -((x_data - 2) ** 2 + (y_data - 3) ** 2)  # Replace with real data
+        results = []
+        x_vals = []
+        y_vals = []
+        z_vals = []
 
-    fig = go.Figure(data=[go.Scatter3d(
-        x=x_data, 
-        y=y_data, 
-        z=z_data, 
-        mode='markers',
-        marker=dict(
-            size=5,
-            color=z_data,
-            colorscale='Viridis'
+        for params in ParameterGrid(param_grid):
+            result = strategy_function(data.copy(), **params)
+            metrics = performance_metrics(result, selected_timeframe)
+            if not np.isnan(metrics['Sharpe Ratio']):
+                results.append((params, metrics['Sharpe Ratio']))
+                x_vals.append(params[space[0].name])
+                y_vals.append(params[space[1].name])
+                z_vals.append(metrics['Sharpe Ratio'])
+
+        if results:
+            best_params, sharpe_ratio = max(results, key=lambda x: x[1])
+            best_result = strategy_function(data.copy(), **best_params)
+
+    # 5. Show the 3D plot
+    st.write("### Parameter Optimization 3D Graph")
+    if best_params:
+        fig = go.Figure(data=[go.Scatter3d(
+            x=x_vals,
+            y=y_vals,
+            z=z_vals,
+            mode='markers',
+            marker=dict(
+                size=5,
+                color=z_vals,
+                colorscale='Viridis',
+                opacity=0.8,
+                colorbar=dict(title='Sharpe Ratio')
+            ),
+            text=[f'{space[0].name}: {x}, {space[1].name}: {y}, Sharpe Ratio: {z:.4f}' for x, y, z in zip(x_vals, y_vals, z_vals)],
+            hoverinfo='text'
+        )])
+
+        fig.update_layout(
+            scene=dict(
+                xaxis_title=space[0].name,
+                yaxis_title=space[1].name,
+                zaxis_title='Sharpe Ratio'
+            ),
+            title=f'3D Visualization of {optimization_method} for {strategy_choice} Strategy',
+            autosize=True
         )
-    )])
-    fig.update_layout(
-        scene=dict(
-            xaxis_title='Parameter 1',
-            yaxis_title='Parameter 2',
-            zaxis_title='Objective Function',
-        ),
-        width=700,
-        margin=dict(r=20, l=10, b=10, t=10)
-    )
-    st.plotly_chart(fig)
+        st.plotly_chart(fig)
 
-# 5. Show the Best parameter combination and Sharpe ratio
-st.write("### Best Parameter Combination:")
-if best_params:
-    st.write(f"**Best Parameters:** {best_params}")
-    st.write(f"**Sharpe Ratio:** {sharpe_ratio}")
-else:
-    st.write("Run optimization to see results.")
+    # 6. Show the Best parameter combination and Sharpe ratio
+    st.write("### Best Parameter Combination:")
+    if best_params:
+        st.write(f"**Best Parameters:** {best_params}")
+        st.write(f"**Sharpe Ratio:** {sharpe_ratio}")
+    else:
+        st.write("Run optimization to see results.")
 
-# 6. Show performance metrics
-st.write("### Performance Metrics:")
-if uploaded_file is not None:
-    avg_return = np.mean(data[selected_timeframe])  # Replace with real metric
-    max_drawdown = np.min(data[selected_timeframe])  # Replace with real metric
-    calmar_ratio = avg_return / abs(max_drawdown)  # Simplified example
-    num_trades = len(data)  # Replace with real metric
-
-    st.write(f"**Average Return:** {avg_return}")
-    st.write(f"**Maximum Drawdown:** {max_drawdown}")
-    st.write(f"**Calmar Ratio:** {calmar_ratio}")
-    st.write(f"**Number of Trades:** {num_trades}")
+    # 7. Show performance metrics
+    st.write("### Performance Metrics:")
+    metrics = performance_metrics(best_result, selected_timeframe)
+    st.write(f"**Average Return:** {metrics.get('Average Return', 'N/A')}")
+    st.write(f"**Maximum Drawdown:** {metrics.get('Maximum Drawdown', 'N/A')}")
+    st.write(f"**Calmar Ratio:** {metrics.get('Calmar Ratio', 'N/A')}")
+    st.write(f"**Number of Trades:** {metrics.get('Number of Trades', 'N/A')}")
