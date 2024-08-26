@@ -204,7 +204,6 @@ uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 if uploaded_file is not None:
     data = pd.read_csv(uploaded_file)
     st.write("File uploaded successfully!")
-    st.write(data.head())
 else:
     st.warning("Please upload a CSV file to proceed.")
     st.stop()
