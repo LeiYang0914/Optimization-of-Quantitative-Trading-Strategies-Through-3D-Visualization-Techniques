@@ -266,6 +266,35 @@ if st.sidebar.button("Run Optimization"):
         y_vals = [point[1] for point in res.x_iters]
         z_vals = [-val for val in res.func_vals]
 
+        # Display 3D scatter plot for Bayesian Optimization
+        with st.expander("Surface Plot"):
+            st.markdown('<p class="header-font">3D Visualization of Bayesian Optimization for MACD Strategy</p>', unsafe_allow_html=True)
+            fig = go.Figure(data=[go.Scatter3d(
+                x=x_vals,
+                y=y_vals,
+                z=z_vals,
+                mode='markers',
+                marker=dict(
+                    size=5,
+                    color=z_vals,
+                    colorscale='Viridis',
+                    opacity=0.8,
+                    colorbar=dict(title='Sharpe Ratio')
+                ),
+                text=[f'{space[0].name}: {x}, {space[1].name}: {y}, Sharpe Ratio: {z:.4f}' for x, y, z in zip(x_vals, y_vals, z_vals)],
+                hoverinfo='text'
+            )])
+
+            fig.update_layout(
+                scene=dict(
+                    xaxis_title=space[0].name,
+                    yaxis_title=space[1].name,
+                    zaxis_title='Sharpe Ratio'
+                ),
+                autosize=True
+            )
+            st.plotly_chart(fig)
+
     elif optimization_method == "Permutation Testing (Grid Search CV)":
         param_grid = {
             dim.name: list(range(dim.bounds[0], dim.bounds[1] + 1, 5))
@@ -290,37 +319,49 @@ if st.sidebar.button("Run Optimization"):
             best_params, sharpe_ratio = max(results, key=lambda x: x[1])
             best_result = strategy_function(data.copy(), **best_params)
 
-    # 5. Show the 3D plot
-    st.markdown('<p class="header-font">Parameter Optimization 3D Graph</p>', unsafe_allow_html=True)
-    if best_params:
-        fig = go.Figure(data=[go.Scatter3d(
-            x=x_vals,
-            y=y_vals,
-            z=z_vals,
-            mode='markers',
-            marker=dict(
-                size=5,
-                color=z_vals,
-                colorscale='Viridis',
-                opacity=0.8,
-                colorbar=dict(title='Sharpe Ratio')
-            ),
-            text=[f'{space[0].name}: {x}, {space[1].name}: {y}, Sharpe Ratio: {z:.4f}' for x, y, z in zip(x_vals, y_vals, z_vals)],
-            hoverinfo='text'
-        )])
+            # Create grid for surface plot
+            x_grid, y_grid = np.meshgrid(np.unique(x_vals), np.unique(y_vals))
+            z_grid = np.zeros_like(x_grid, dtype=float)
 
-        fig.update_layout(
-            scene=dict(
-                xaxis_title=space[0].name,
-                yaxis_title=space[1].name,
-                zaxis_title='Sharpe Ratio'
-            ),
-            title=f'3D Visualization of {optimization_method} for {strategy_choice} Strategy',
-            autosize=True
-        )
-        st.plotly_chart(fig)
+            # Populate the z values based on the unique x and y values
+            for i, x in enumerate(np.unique(x_vals)):
+                for j, y in enumerate(np.unique(y_vals)):
+                    sharpe_values = [z for (xi, yi), z in zip(zip(x_vals, y_vals), z_vals) if xi == x and yi == y]
+                    if sharpe_values:
+                        z_grid[j, i] = max(sharpe_values)
 
-    # 6. Show the Best parameter combination and Sharpe ratio
+            # Display 3D surface plot for Grid Search CV
+            with st.expander("Surface Plot"):
+                st.markdown('<p class="header-font">3D Surface Plot for MACD Strategy (Grid Search CV)</p>', unsafe_allow_html=True)
+                fig = go.Figure(data=[go.Surface(x=x_grid, y=y_grid, z=z_grid, colorscale='Viridis')])
+
+                # Add a scatter point for the maximum Sharpe Ratio
+                max_sharpe_idx = np.unravel_index(np.argmax(z_grid, axis=None), z_grid.shape)
+                max_sharpe_value = z_grid[max_sharpe_idx]
+                best_fast_length = x_grid[max_sharpe_idx]
+                best_slow_length = y_grid[max_sharpe_idx]
+
+                fig.add_trace(go.Scatter3d(
+                    x=[best_fast_length],
+                    y=[best_slow_length],
+                    z=[max_sharpe_value],
+                    mode='markers+text',
+                    marker=dict(size=5, color='red'),
+                    text=[f'Max Sharpe Ratio: {max_sharpe_value:.4f}'],
+                    textposition='top center'
+                ))
+
+                fig.update_layout(
+                    scene=dict(
+                        xaxis_title=space[0].name,
+                        yaxis_title=space[1].name,
+                        zaxis_title='Sharpe Ratio'
+                    ),
+                    autosize=True
+                )
+                st.plotly_chart(fig)
+
+    # 5. Show the Best parameter combination and Sharpe ratio
     st.markdown('<p class="header-font">Best Parameter Combination</p>', unsafe_allow_html=True)
     if best_params:
         st.write(f"**Best Parameters:** {best_params}")
@@ -328,7 +369,7 @@ if st.sidebar.button("Run Optimization"):
     else:
         st.write("Run optimization to see results.")
 
-    # 7. Show performance metrics
+    # 6. Show performance metrics
     st.markdown('<p class="header-font">Performance Metrics</p>', unsafe_allow_html=True)
     metrics = performance_metrics(best_result, selected_timeframe)
     st.write('<div class="metrics-box">', unsafe_allow_html=True)
@@ -354,5 +395,3 @@ with st.expander("Monte Carlo"):
 with st.expander("Heat Map"):
     st.write("Add your heat map plot code here.")
 
-with st.expander("Surface Plot"):
-    st.write("Add your surface plot code here.")
