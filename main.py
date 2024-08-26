@@ -6,8 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ta
 import plotly.graph_objects as go
-from bayes_opt import BayesianOptimization
+import streamlit as st
 
+from bayes_opt import BayesianOptimization
 from skopt import gp_minimize
 from skopt.space import Integer,Real
 from skopt.utils import use_named_args
