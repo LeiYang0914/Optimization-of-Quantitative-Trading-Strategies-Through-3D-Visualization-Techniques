@@ -204,6 +204,7 @@ uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 if uploaded_file is not None:
     data = pd.read_csv(uploaded_file)
     st.write("File uploaded successfully!")
+    st.write(data.head())
 else:
     st.warning("Please upload a CSV file to proceed.")
     st.stop()
@@ -267,7 +268,7 @@ if st.sidebar.button("Run Optimization"):
 
         # Display 3D scatter plot for Bayesian Optimization
         with st.expander("Surface Plot"):
-            st.markdown('<p class="header-font">3D Visualization of Bayesian Optimization for MACD Strategy</p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="header-font">3D Visualization of Bayesian Optimization for {strategy_choice} Strategy</p>', unsafe_allow_html=True)
             fig = go.Figure(data=[go.Scatter3d(
                 x=x_vals,
                 y=y_vals,
@@ -331,7 +332,7 @@ if st.sidebar.button("Run Optimization"):
 
             # Display 3D surface plot for Grid Search CV
             with st.expander("Surface Plot"):
-                st.markdown('<p class="header-font">3D Surface Plot for MACD Strategy (Grid Search CV)</p>', unsafe_allow_html=True)
+                st.markdown(f'<p class="header-font">3D Surface Plot for {strategy_choice} Strategy (Grid Search CV)</p>', unsafe_allow_html=True)
                 fig = go.Figure(data=[go.Surface(x=x_grid, y=y_grid, z=z_grid, colorscale='Viridis')])
 
                 # Add a scatter point for the maximum Sharpe Ratio
@@ -371,7 +372,8 @@ if st.sidebar.button("Run Optimization"):
         st.write("Run optimization to see results.")
 
     # 6. Show performance metrics inside the "Sharpe Ratio" expander
-    with st.expander("Performance Metrics"):
+    with st.expander("Sharpe Ratio"):
+        st.markdown('<p class="header-font">Performance Metrics</p>', unsafe_allow_html=True)
         metrics = performance_metrics(best_result, selected_timeframe)
         st.write('<div class="metrics-box">', unsafe_allow_html=True)
         st.write(f'<div><h3>Average Return</h3><p>{metrics.get("Average Return", "N/A"):.2f}%</p></div>', unsafe_allow_html=True)
@@ -380,11 +382,8 @@ if st.sidebar.button("Run Optimization"):
         st.write(f'<div><h3>Number of Trades</h3><p>{metrics.get("Number of Trades", "N/A")}</p></div>', unsafe_allow_html=True)
         st.write('</div>', unsafe_allow_html=True)
 
-
 with st.expander("Equity Curve"):
     st.write("Add your equity curve plot code here.")
 
-
 with st.expander("Heat Map"):
     st.write("Add your heat map plot code here.")
-
