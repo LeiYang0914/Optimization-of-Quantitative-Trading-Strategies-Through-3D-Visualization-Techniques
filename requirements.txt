@@ -1,0 +1,10 @@
+yfinance
+pandas
+numpy
+matplotlib
+ta
+plotly
+bayesian-optimization
+scikit-optimize
+scikit-learn
+seaborn
