@@ -1,11 +1,23 @@
-import streamlit as st
+import yfinance as yf
+from datetime import datetime
+import csv
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import ta
 import plotly.graph_objects as go
+from bayes_opt import BayesianOptimization
+
 from skopt import gp_minimize
-from skopt.space import Integer
+from skopt.space import Integer,Real
 from skopt.utils import use_named_args
+from plotly.subplots import make_subplots
 from sklearn.model_selection import ParameterGrid
+import seaborn as sns
+
+
+import warnings
+warnings.filterwarnings("ignore")
 
 # Define the strategies
 def macd_strategy(data, fast_length=12, slow_length=26):
