@@ -382,8 +382,15 @@ if st.sidebar.button("Run Optimization"):
         st.write(f'<div><h3>Number of Trades</h3><p>{metrics.get("Number of Trades", "N/A")}</p></div>', unsafe_allow_html=True)
         st.write('</div>', unsafe_allow_html=True)
 
-with st.expander("Equity Curve"):
-    st.write("Add your equity curve plot code here.")
+    with st.expander("Equity Curve"):
+        st.markdown(f'<p class="header-font">{strategy_choice} Strategy Cumulative PnL</p>', unsafe_allow_html=True)
+        plt.figure(figsize=(12, 6))
+        plt.plot(best_result['Cumulative PnL (Long Short)'], label='Cumulative PnL (Long Short)', color='red')
+        plt.title(f'{strategy_choice} Strategy Cumulative PnL')
+        plt.xlabel('Date')
+        plt.ylabel('PnL')
+        plt.legend()
+        st.pyplot(plt)
 
 with st.expander("Heat Map"):
     st.write("Add your heat map plot code here.")
