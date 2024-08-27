@@ -372,8 +372,7 @@ if st.sidebar.button("Run Optimization"):
         st.write("Run optimization to see results.")
 
     # 6. Show performance metrics inside the "Sharpe Ratio" expander
-    with st.expander("Sharpe Ratio"):
-        st.markdown('<p class="header-font">Performance Metrics</p>', unsafe_allow_html=True)
+    with st.expander("Performance Metrics"):
         metrics = performance_metrics(best_result, selected_timeframe)
         st.write('<div class="metrics-box">', unsafe_allow_html=True)
         st.write(f'<div><h3>Average Return</h3><p>{metrics.get("Average Return", "N/A"):.2f}%</p></div>', unsafe_allow_html=True)
