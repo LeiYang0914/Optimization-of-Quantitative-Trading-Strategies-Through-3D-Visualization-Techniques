@@ -464,7 +464,7 @@ strategy_params = {
             Integer(10, 201, name='ma_length')]
     },
     'Bollinger Band + RSI': {
-        'strategy': bollinger_band_rsi_strategy,
+        'strategy': bollinger_rsi_strategy,
         'space': [
             Integer(5, 101, name='rsi_length'),
             Integer(10, 101, name='bb_length')
