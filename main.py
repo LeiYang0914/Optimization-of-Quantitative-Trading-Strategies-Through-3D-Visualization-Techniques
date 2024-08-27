@@ -134,6 +134,263 @@ def moving_avg_cross_strategy(data, fast_length=9, slow_length=18):
     
     return data
 
+def adx_di_crossover_strategy(data, adx_length=14, adx_threshold=25):
+    """
+    Apply ADX and DI Crossover Strategy on a given DataFrame.
+    
+    Parameters:
+    - data (pd.DataFrame): DataFrame with 'High', 'Low', 'Close' price columns.
+    - adx_length (int): Length for ADX calculation.
+    - adx_threshold (int): Threshold for ADX to consider a strong trend.
+    
+    Returns:
+    - data (pd.DataFrame): DataFrame with strategy results.
+    """
+    # Calculate ADX, +DI, -DI
+    adx = ta.trend.ADXIndicator(data['High'], data['Low'], data['Close'], window=adx_length)
+    data['adx'] = adx.adx()
+    data['+DI'] = adx.adx_pos()
+    data['-DI'] = adx.adx_neg()
+    
+    # Generate signals
+    data['long_signal'] = (data['adx'] > adx_threshold) & (data['+DI'] > data['-DI']) & (data['+DI'].shift(1) <= data['-DI'].shift(1))
+    data['short_signal'] = (data['adx'] > adx_threshold) & (data['-DI'] > data['+DI']) & (data['-DI'].shift(1) <= data['+DI'].shift(1))
+    
+    # Initialize positions
+    data['Position (Long Short)'] = 0
+    data.loc[data['long_signal'], 'Position (Long Short)'] = 1
+    data.loc[data['short_signal'], 'Position (Long Short)'] = -1
+    data['Position (Long Short)'] = data['Position (Long Short)'].replace(0, pd.NA).ffill().fillna(0)
+    
+    # Define trading fees
+    taker_fee = 0.00055  # 0.055%
+
+    # Calculate strategy returns with fees
+    data['PnL (Long Short)'] = data['Position (Long Short)'].shift(1) * data['Close'].pct_change()
+    data['PnL (Long Short) with Fees'] = data['PnL (Long Short)'] - (abs(data['Position (Long Short)'].shift(1) - data['Position (Long Short)']) * taker_fee)
+
+    # Calculate cumulative returns
+    data['Cumulative PnL (Long Short)'] = data['PnL (Long Short) with Fees'].cumsum()
+    
+    # Calculate drawdown
+    data['Cumulative Max'] = data['Cumulative PnL (Long Short)'].cummax()
+    data['Drawdown (Long Short)'] = data['Cumulative Max'] - data['Cumulative PnL (Long Short)']
+    
+    # Calculate number of trades
+    data['Trade Entry'] = (data['Position (Long Short)'] != 0) & (data['Position (Long Short)'] != data['Position (Long Short)'].shift(1))
+    data['Number of Trades'] = data['Trade Entry'].cumsum()
+    
+    return data
+
+def mean_reversion_strategy(data, move_limit=10, ma_length=50):
+    """
+    Apply the Mean Reversion Strategy on a given DataFrame.
+    
+    Parameters:
+    - data (pd.DataFrame): DataFrame with 'Open', 'High', 'Low', and 'Close' columns.
+    - move_limit (int): Percentage limit to identify a big move.
+    - ma_length (int): Moving average period length.
+    
+    Returns:
+    - data (pd.DataFrame): DataFrame with strategy columns and cumulative returns.
+    """
+    # Moving Average
+    data['ma'] = ta.trend.SMAIndicator(data['Close'], window=ma_length).sma_indicator()
+    
+    # Identify Down and Up Bars
+    data['down_bar'] = data['Open'] > data['Close']
+    data['up_bar'] = ~data['down_bar']
+    
+    # Identify 2 consecutive down/up bars
+    data['is_two_down'] = data['down_bar'] & data['down_bar'].shift(1)
+    data['is_two_up'] = data['up_bar'] & data['up_bar'].shift(1)
+    
+    # Identify Big Moves
+    data['big_move_down'] = ((data['Open'] - data['Close']) / (0.001 + data['High'] - data['Low'])) > move_limit / 100.0
+    data['big_move_up'] = ((data['Close'] - data['Open']) / (0.001 + data['High'] - data['Low'])) > move_limit / 100.0
+    
+    # Long Entry and Exit Signals
+    data['is_long_buy'] = data['is_two_down'] & data['big_move_down']
+    data['is_long_exit'] = data['Close'] > data['High'].shift(1)
+    
+    # Short Entry and Exit Signals
+    data['is_short_buy'] = data['is_two_up'] & data['big_move_up'] & (data['Close'] < data['ma'])
+    data['is_short_exit'] = data['Close'] < data['Low'].shift(1)
+    
+    # Initialize Positions
+    data['Position (Long Short)'] = 0
+    data.loc[data['is_long_buy'], 'Position (Long Short)'] = 1
+    data.loc[data['is_long_exit'], 'Position (Long Short)'] = 0
+    data.loc[data['is_short_buy'], 'Position (Long Short)'] = -1
+    data.loc[data['is_short_exit'], 'Position (Long Short)'] = 0
+    data['Position (Long Short)'] = data['Position (Long Short)'].replace(0, pd.NA).ffill().fillna(0).infer_objects(copy=False)
+    
+    # Define trading fees
+    taker_fee = 0.00055  # 0.055%
+
+    # Calculate PnL with fees
+    data['PnL (Long Short)'] = data['Position (Long Short)'].shift(1) * (data['Close'] / data['Close'].shift(1) - 1)
+    data['PnL (Long Short) with Fees'] = data['PnL (Long Short)'] - (abs(data['Position (Long Short)'].shift(1) - data['Position (Long Short)']) * taker_fee)
+
+    # Calculate Cumulative PnL
+    data['Cumulative PnL (Long Short)'] = data['PnL (Long Short) with Fees'].cumsum()
+    
+    # Calculate Cumulative Max and Drawdown
+    data['Cumulative Max'] = data['Cumulative PnL (Long Short)'].cummax()
+    data['Drawdown (Long Short)'] = data['Cumulative Max'] - data['Cumulative PnL (Long Short)']
+
+    # Calculate Number of Trades
+    data['Number of Trades'] = ((data['Position (Long Short)'] != 0) & (data['Position (Long Short)'] != data['Position (Long Short)'].shift(1))).cumsum()
+    
+    return data
+
+
+def bollinger_rsi_strategy(data, rsi_length=14, bb_length=20):
+    """
+    Apply the Bollinger Band with RSI Strategy on a given DataFrame.
+    
+    Parameters:
+    - data (pd.DataFrame): DataFrame with 'Open', 'High', 'Low', and 'Close' columns.
+    - rsi_length (int): Length for RSI calculation.
+    - bb_length (int): Length for Bollinger Bands calculation.
+    
+    Returns:
+    - data (pd.DataFrame): DataFrame with strategy results.
+    """
+    # Define fixed parameters
+    bb_stddev = 3.0
+    long_tp_pct = 15
+    long_sl_pct = 8
+    short_tp_pct = 12
+    short_sl_pct = 25
+
+    # Calculate RSI
+    data['rsi'] = ta.momentum.RSIIndicator(data['Close'], window=rsi_length).rsi()
+    
+    # Calculate Bollinger Bands
+    bb_indicator = ta.volatility.BollingerBands(close=data['Close'], window=bb_length, window_dev=bb_stddev)
+    data['bb_upper'] = bb_indicator.bollinger_hband()
+    data['bb_lower'] = bb_indicator.bollinger_lband()
+    data['bb_middle'] = bb_indicator.bollinger_mavg()
+    
+    # Calculate take profit and stop loss levels
+    data['long_tp_level'] = data['Close'] * (1 + long_tp_pct / 100)
+    data['long_sl_level'] = data['Close'] * (1 - long_sl_pct / 100)
+    data['short_tp_level'] = data['Close'] * (1 - short_tp_pct / 100)
+    data['short_sl_level'] = data['Close'] * (1 + short_sl_pct / 100)
+    
+    # Entry and Exit Signals
+    data['entry_long'] = (data['rsi'] < 30) & (data['Close'] < data['bb_lower']) 
+    data['exit_long'] = (data['rsi'] > 70) | (data['Close'] > data['bb_middle'])  
+    
+    data['entry_short'] = (data['rsi'] > 70) & (data['Close'] > data['bb_upper'])  
+    data['exit_short'] = (data['rsi'] < 30) | (data['Close'] < data['bb_middle'])  
+    
+    # Initialize Positions and Trades
+    data['Position (Long Short)'] = 0
+    data['In Trade'] = False
+    
+    for i in range(1, len(data)):
+        if not data['In Trade'].iloc[i-1]:
+            if data['entry_long'].iloc[i]:
+                data.at[data.index[i], 'Position (Long Short)'] = 1
+                data.at[data.index[i], 'In Trade'] = 'Long'
+                entry_price = data['Close'].iloc[i]
+                tp_level = entry_price * (1 + long_tp_pct / 100)
+                sl_level = entry_price * (1 - long_sl_pct / 100)
+            elif data['entry_short'].iloc[i]:
+                data.at[data.index[i], 'Position (Long Short)'] = -1
+                data.at[data.index[i], 'In Trade'] = 'Short'
+                entry_price = data['Close'].iloc[i]
+                tp_level = entry_price * (1 - short_tp_pct / 100)
+                sl_level = entry_price * (1 + short_sl_pct / 100)
+        elif data['In Trade'].iloc[i-1] == 'Long':
+            if data['Close'].iloc[i] >= tp_level or data['Close'].iloc[i] <= sl_level or data['exit_long'].iloc[i]:
+                data.at[data.index[i], 'Position (Long Short)'] = 0
+                data.at[data.index[i], 'In Trade'] = False
+            else:
+                data.at[data.index[i], 'Position (Long Short)'] = 1
+        elif data['In Trade'].iloc[i-1] == 'Short':
+            if data['Close'].iloc[i] <= tp_level or data['Close'].iloc[i] >= sl_level or data['exit_short'].iloc[i]:
+                data.at[data.index[i], 'Position (Long Short)'] = 0
+                data.at[data.index[i], 'In Trade'] = False
+            else:
+                data.at[data.index[i], 'Position (Long Short)'] = -1
+    
+    data['Position (Long Short)'] = data['Position (Long Short)'].replace(0, pd.NA).ffill().fillna(0)
+    
+    # Define trading fees
+    taker_fee = 0.00055  # 0.055%
+
+    # Calculate strategy returns with fees
+    data['PnL (Long Short)'] = data['Position (Long Short)'].shift(1) * (data['Close'] / data['Close'].shift(1) - 1)
+    data['PnL (Long Short) with Fees'] = data['PnL (Long Short)'] - (abs(data['Position (Long Short)'].shift(1) - data['Position (Long Short)']) * taker_fee)
+
+    # Calculate cumulative returns
+    data['Cumulative PnL (Long Short)'] = data['PnL (Long Short) with Fees'].cumsum()
+    
+    # Calculate drawdown
+    data['Cumulative Max'] = data['Cumulative PnL (Long Short)'].cummax()
+    data['Drawdown (Long Short)'] = data['Cumulative Max'] - data['Cumulative PnL (Long Short)']
+    
+    # Calculate Number of Trades
+    data['Trade Entry'] = (data['Position (Long Short)'] != 0) & (data['Position (Long Short)'] != data['Position (Long Short)'].shift(1))
+    data['Number of Trades'] = data['Trade Entry'].cumsum()
+    
+    return data
+
+
+def z_score_sma_strategy(data, sma_length=50, z_score_threshold=0.75):
+    """
+    Apply the Z-Score SMA strategy on a given DataFrame.
+    
+    Parameters:
+    - data (pd.DataFrame): DataFrame with a 'Close' price column.
+    - sma_length (int): Simple moving average window length.
+    - z_score_threshold (float): Z-score threshold for signal generation.
+    
+    Returns:
+    - data (pd.DataFrame): DataFrame with strategy columns and cumulative returns.
+    """
+    # Calculate the SMA
+    data['sma'] = ta.trend.SMAIndicator(close=data['Close'], window=sma_length).sma_indicator()
+    
+    # Calculate the Z-Score
+    data['mean'] = data['Close'].rolling(window=sma_length).mean()
+    data['std'] = data['Close'].rolling(window=sma_length).std()
+    data['z_score'] = (data['Close'] - data['sma']) / data['std']
+    
+    # Generate trading signals
+    data['long_signal'] = (data['z_score'] > z_score_threshold)
+    data['short_signal'] = (data['z_score'] < -z_score_threshold)
+    
+    # Initialize positions
+    data['Position (Long Short)'] = 0
+    data.loc[data['long_signal'], 'Position (Long Short)'] = 1
+    data.loc[data['short_signal'], 'Position (Long Short)'] = -1
+    
+    # Forward fill positions
+    data['Position (Long Short)'] = data['Position (Long Short)'].replace(0, np.nan).ffill().fillna(0)
+    
+    # Define trading fees
+    taker_fee = 0.00055  # 0.055%
+
+    # Calculate strategy returns with fees
+    data['PnL (Long Short)'] = data['Position (Long Short)'].shift(1) * data['Close'].pct_change()
+    data['PnL (Long Short) with Fees'] = data['PnL (Long Short)'] - (abs(data['Position (Long Short)'].shift(1) - data['Position (Long Short)']) * taker_fee)
+
+    # Calculate cumulative returns
+    data['Cumulative PnL (Long Short)'] = data['PnL (Long Short) with Fees'].cumsum()
+    
+    # Calculate drawdown
+    data['Cumulative Max'] = data['Cumulative PnL (Long Short)'].cummax()
+    data['Drawdown (Long Short)'] = data['Cumulative Max'] - data['Cumulative PnL (Long Short)']
+    
+    # Calculate number of trades
+    data['Trade Entry'] = (data['Position (Long Short)'] != 0) & (data['Position (Long Short)'] != data['Position (Long Short)'].shift(1))
+    data['Number of Trades'] = data['Trade Entry'].cumsum()
+    
+    return data
 
 # Define the performance metrics function
 def performance_metrics(data, timeframe):
@@ -193,6 +450,32 @@ strategy_params = {
             Integer(5, 21, name='fast_length'),
             Integer(20, 51, name='slow_length')
         ]
+    },
+    'ADX DI Crossover': {
+        'strategy': adx_di_crossover_strategy,
+        'space': [
+            Integer(5, 51, name='adx_length'),
+            Integer(10, 51, name='adx_threshold')]
+    },
+    'Mean Reversion': {
+        'strategy': mean_reversion_strategy,
+        'space': [
+            Real(1, 21, name='move_limit'),
+            Integer(10, 201, name='ma_length')]
+    },
+    'Bollinger Band + RSI': {
+        'strategy': bollinger_band_rsi_strategy,
+        'space': [
+            Integer(5, 101, name='rsi_length'),
+            Integer(10, 101, name='bb_length')
+         ]
+    },
+    'Z-Score SMA': {
+        'strategy': z_score_sma_strategy,
+        'space': [
+            Integer(10, 201, name='sma_length'),  
+            Real(0.1, 3.1, name='z_score_threshold')  
+]
     }
 }
 
