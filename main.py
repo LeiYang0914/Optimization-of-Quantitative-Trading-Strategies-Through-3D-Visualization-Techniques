@@ -479,6 +479,16 @@ strategy_params = {
     }
 }
 
+# Function to generate parameter grid
+def generate_param_grid(space):
+    param_grid = {}
+    for dim in space:
+        if isinstance(dim, Integer):
+            param_grid[dim.name] = list(range(dim.bounds[0], dim.bounds[1] + 1, 5))
+        elif isinstance(dim, Real):
+            param_grid[dim.name] = np.linspace(dim.bounds[0], dim.bounds[1], num=10).tolist()
+    return param_grid
+
 # Page Title
 st.markdown('<p class="big-font">Parameter Optimization UI</p>', unsafe_allow_html=True)
 
@@ -578,10 +588,7 @@ if st.sidebar.button("Run Optimization"):
             st.plotly_chart(fig)
 
     elif optimization_method == "Permutation Testing (Grid Search CV)":
-        param_grid = {
-            dim.name: list(range(dim.bounds[0], dim.bounds[1] + 1, 5))
-            for dim in space
-        }
+        param_grid = generate_param_grid(space)
 
         results = []
         x_vals = []
@@ -642,7 +649,7 @@ if st.sidebar.button("Run Optimization"):
                     autosize=True
                 )
                 st.plotly_chart(fig)
-
+                
     # 5. Show the Best parameter combination and Sharpe ratio
     st.markdown('<p class="header-font">Best Parameter Combination</p>', unsafe_allow_html=True)
     if best_params:
