@@ -435,6 +435,40 @@ def performance_metrics(data, timeframe):
         'Number of Trades': number_of_trades 
     }
 
+# Define the function to generate the heatmap
+def plot_heatmap(results, param1_name, param2_name, metric_name):
+    """
+    Plot a heatmap of the optimization results.
+
+    Parameters:
+    - results (list of tuples): List of tuples containing parameter combinations and their respective metric.
+    - param1_name (str): Name of the first parameter.
+    - param2_name (str): Name of the second parameter.
+    - metric_name (str): Name of the metric to plot.
+    """
+    # Extract parameter values and metrics
+    param1_vals = [params[param1_name] for params, _ in results]
+    param2_vals = [params[param2_name] for params, _ in results]
+    metrics = [metric for _, metric in results]
+
+    # Create a DataFrame for the heatmap
+    data = pd.DataFrame({
+        param1_name: param1_vals,
+        param2_name: param2_vals,
+        metric_name: metrics
+    })
+
+    # Pivot the data for the heatmap
+    heatmap_data = data.pivot(index=param1_name, columns=param2_name, values=metric_name)
+
+    # Plot the heatmap
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(heatmap_data, annot=True, cmap='viridis')
+    plt.title(f'Heatmap of {metric_name}')
+    plt.xlabel(param2_name)
+    plt.ylabel(param1_name)
+    st.pyplot(plt)  # Use st.pyplot to display the heatmap in Streamlit
+
 # Define the search spaces for Bayesian Optimization
 strategy_params = {
     'MACD': {
@@ -649,6 +683,11 @@ if st.sidebar.button("Run Optimization"):
                     autosize=True
                 )
                 st.plotly_chart(fig)
+                
+                # Display heatmap in the "Heat Map" expander
+                with st.expander("Heat Map"):
+                st.markdown('<p class="header-font">Heatmap of Sharpe Ratio</p>', unsafe_allow_html=True)
+                plot_heatmap(results, space[0].name, space[1].name, 'Sharpe Ratio')
                 
     # 5. Show the Best parameter combination and Sharpe ratio
     st.markdown('<p class="header-font">Best Parameter Combination</p>', unsafe_allow_html=True)
