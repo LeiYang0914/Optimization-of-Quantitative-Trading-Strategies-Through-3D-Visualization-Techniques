@@ -683,9 +683,9 @@ if st.sidebar.button("Run Optimization"):
                     autosize=True
                 )
                 st.plotly_chart(fig)
-                
-                # Display heatmap in the "Heat Map" expander
-             with st.expander("Heat Map"):
+
+            # Display heatmap in the "Heat Map" expander
+            with st.expander("Heat Map"):
                 st.markdown('<p class="header-font">Heatmap of Sharpe Ratio</p>', unsafe_allow_html=True)
                 plot_heatmap(results, space[0].name, space[1].name, 'Sharpe Ratio')
                 
