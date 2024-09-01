@@ -28,7 +28,7 @@ st.markdown("""
 
         /* Increase font sizes */
         .big-font {
-            font-size:40px !important;
+            font-size:35px !important;
             color: #FF6347;
             font-weight: bold;
         }
