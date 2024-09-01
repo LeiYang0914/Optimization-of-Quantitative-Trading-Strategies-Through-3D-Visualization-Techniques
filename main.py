@@ -591,7 +591,7 @@ def generate_param_grid(space):
     return param_grid
 
 # Page Title
-st.markdown('<p class="big-font">Parameter Optimization UI</p>', unsafe_allow_html=True)
+st.markdown('<p class="big-font">Quantitative Trading Strategy Optimization</p>', unsafe_allow_html=True)
 
 ## 1. Upload a CSV file
 uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type=["csv"])
