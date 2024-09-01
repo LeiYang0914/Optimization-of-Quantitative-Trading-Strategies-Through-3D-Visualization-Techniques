@@ -1,4 +1,3 @@
-import yfinance as yf
 from datetime import datetime
 import csv
 import pandas as pd
