@@ -773,17 +773,16 @@ if st.sidebar.button("Run Optimization"):
                 st.markdown('<p class="header-font">Heatmap of Sharpe Ratio</p>', unsafe_allow_html=True)
                 plot_heatmap(results, space[0].name, space[1].name, 'Sharpe Ratio')
                 
-    # 5. Show the Best parameter combination and Sharpe ratio
+    # 5. Show the Best parameter combination
     with st.expander("Best Parameter Combination"):
         if best_params:
-            # Format parameters and Sharpe Ratio
+            # Format parameters
             formatted_params = ', '.join([f'{key}: {int(value)}' for key, value in best_params.items()])
             st.markdown(f'<p class="metric-value">Best Parameters: {formatted_params}</p>', unsafe_allow_html=True)
-            st.markdown(f'<p class="metric-value">Sharpe Ratio: {sharpe_ratio:.4f}</p>', unsafe_allow_html=True)
         else:
             st.write("Run optimization to see results.")
-
-    # 6. Show performance metrics inside the "Sharpe Ratio" expander
+    
+    # 6. Show performance metrics inside the "Performance Metrics" expander
     with st.expander("Performance Metrics"):
         st.markdown('<p class="subheader-font">Performance Metrics</p>', unsafe_allow_html=True)
         st.markdown("""
@@ -791,6 +790,10 @@ if st.sidebar.button("Run Optimization"):
                 <tr>
                     <th>Metric</th>
                     <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Sharpe Ratio</td>
+                    <td>{:.4f}</td>
                 </tr>
                 <tr>
                     <td>Average Return</td>
@@ -809,9 +812,10 @@ if st.sidebar.button("Run Optimization"):
                     <td>{}</td>
                 </tr>
             </table>
-            """.format(metrics.get("Average Return", 0), metrics.get("Maximum Drawdown", 0),
+            """.format(sharpe_ratio, metrics.get("Average Return", 0), metrics.get("Maximum Drawdown", 0),
                        metrics.get("Calmar Ratio", 0), metrics.get("Number of Trades", 0)),
             unsafe_allow_html=True)
+
 
     with st.expander("Equity Curve"):
         st.markdown(f'<p class="header-font">{strategy_choice} Strategy Cumulative PnL</p>', unsafe_allow_html=True)
