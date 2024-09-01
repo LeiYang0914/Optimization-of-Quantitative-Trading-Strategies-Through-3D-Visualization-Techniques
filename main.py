@@ -21,32 +21,70 @@ warnings.filterwarnings("ignore")
 # Custom CSS for enhancing the UI
 st.markdown("""
     <style>
+        /* Background color */
+        body {
+            background-color: #f0f2f6;
+        }
+
+        /* Increase font sizes */
         .big-font {
-            font-size:30px !important;
-            color: #FFA500;
+            font-size:35px !important;
+            color: #FF6347;
+            font-weight: bold;
         }
         .header-font {
-            font-size:24px !important;
+            font-size:28px !important;
             font-weight: bold;
             color: #FF4500;
         }
-        .metrics-box {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-        }
-        .metrics-box div {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            flex-grow: 1;
-            margin: 0 10px;
-        }
-        .accordion .streamlit-expanderHeader {
+        .subheader-font {
+            font-size:22px !important;
             font-weight: bold;
-            color: #FFA500;
+            color: #FF6347;
+        }
+        
+        /* Custom buttons and sidebar styles */
+        .stButton>button {
+            background-color: #FF4500;
+            color: white;
+            border-radius: 10px;
+            font-size: 18px;
+            height: 50px;
+            width: 100%;
+        }
+        .stSidebar > div {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .stSidebar h1 {
+            font-size: 24px;
+            color: #FF4500;
+            font-weight: bold;
+        }
+        
+        /* Expander header */
+        .streamlit-expanderHeader {
+            font-size: 20px !important;
+            font-weight: bold;
+            background-color: #FF6347;
+            color: white !important;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        /* Center content */
+        .center-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* Add some margin to the content */
+        .stApp {
+            padding: 30px;
         }
     </style>
     """, unsafe_allow_html=True)
