@@ -774,7 +774,7 @@ if st.sidebar.button("Run Optimization"):
                 plot_heatmap(results, space[0].name, space[1].name, 'Sharpe Ratio')
                 
     # 5. Show the Best parameter combination and Sharpe ratio
-    st.markdown('<p class="subheader-font">Best Parameter Combination</p>', unsafe_allow_html=True)
+    with st.expander("Best Parameter Combination"):
     if best_params:
         # Format parameters and Sharpe Ratio
         formatted_params = ', '.join([f'{key}: {int(value)}' for key, value in best_params.items()])
