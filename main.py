@@ -28,19 +28,23 @@ st.markdown("""
 
         /* Increase font sizes */
         .big-font {
-            font-size:35px !important;
+            font-size:40px !important;
             color: #FF6347;
             font-weight: bold;
         }
         .header-font {
-            font-size:28px !important;
+            font-size:32px !important;
             font-weight: bold;
             color: #FF4500;
         }
         .subheader-font {
-            font-size:22px !important;
+            font-size:26px !important;
             font-weight: bold;
             color: #FF6347;
+        }
+        .metric-value {
+            font-size:24px !important;
+            color: #333;
         }
         
         /* Custom buttons and sidebar styles */
@@ -85,6 +89,32 @@ st.markdown("""
         /* Add some margin to the content */
         .stApp {
             padding: 30px;
+        }
+
+        /* Table styling */
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 18px;
+            text-align: left;
+        }
+        .metrics-table th, .metrics-table td {
+            padding: 12px 15px;
+        }
+        .metrics-table th {
+            background-color: #FF6347;
+            color: white;
+            font-weight: bold;
+        }
+        .metrics-table tr {
+            border-bottom: 1px solid #dddddd;
+        }
+        .metrics-table tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+        .metrics-table tr:last-of-type {
+            border-bottom: 2px solid #FF6347;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -744,7 +774,9 @@ if st.sidebar.button("Run Optimization"):
                 plot_heatmap(results, space[0].name, space[1].name, 'Sharpe Ratio')
                 
     # 5. Show the Best parameter combination and Sharpe ratio
-    st.markdown('<p class="header-font">Best Parameter Combination</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subheader-font">Best Parameter Combination</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="metric-value">Best Parameters: {formatted_params}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="metric-value">Sharpe Ratio: {sharpe_ratio:.4f}</p>', unsafe_allow_html=True)
     if best_params:
         # Format parameters and Sharpe Ratio
         formatted_params = ', '.join([f'{key}: {int(value)}' for key, value in best_params.items()])
@@ -755,13 +787,33 @@ if st.sidebar.button("Run Optimization"):
 
     # 6. Show performance metrics inside the "Sharpe Ratio" expander
     with st.expander("Performance Metrics"):
-        metrics = performance_metrics(best_result, selected_timeframe)
-        st.write('<div class="metrics-box">', unsafe_allow_html=True)
-        st.write(f'<div><h3>Average Return</h3><p>{metrics.get("Average Return", "N/A"):.2f}%</p></div>', unsafe_allow_html=True)
-        st.write(f'<div><h3>Maximum Drawdown</h3><p>{metrics.get("Maximum Drawdown", "N/A"):.2f}%</p></div>', unsafe_allow_html=True)
-        st.write(f'<div><h3>Calmar Ratio</h3><p>{metrics.get("Calmar Ratio", "N/A"):.4f}</p></div>', unsafe_allow_html=True)
-        st.write(f'<div><h3>Number of Trades</h3><p>{metrics.get("Number of Trades", "N/A")}</p></div>', unsafe_allow_html=True)
-        st.write('</div>', unsafe_allow_html=True)
+        st.markdown('<p class="subheader-font">Performance Metrics</p>', unsafe_allow_html=True)
+        st.markdown("""
+            <table class="metrics-table">
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Average Return</td>
+                    <td>{:.2f}%</td>
+                </tr>
+                <tr>
+                    <td>Maximum Drawdown</td>
+                    <td>{:.2f}%</td>
+                </tr>
+                <tr>
+                    <td>Calmar Ratio</td>
+                    <td>{:.4f}</td>
+                </tr>
+                <tr>
+                    <td>Number of Trades</td>
+                    <td>{}</td>
+                </tr>
+            </table>
+            """.format(metrics.get("Average Return", 0), metrics.get("Maximum Drawdown", 0),
+                       metrics.get("Calmar Ratio", 0), metrics.get("Number of Trades", 0)),
+            unsafe_allow_html=True)
 
     with st.expander("Equity Curve"):
         st.markdown(f'<p class="header-font">{strategy_choice} Strategy Cumulative PnL</p>', unsafe_allow_html=True)
