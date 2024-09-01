@@ -591,6 +591,12 @@ if st.sidebar.button("Run Optimization"):
         y_vals = [point[1] for point in res.x_iters]
         z_vals = [-val for val in res.func_vals]
 
+        # Find the maximum Sharpe Ratio
+        max_sharpe_ratio = max(z_vals)
+        max_index = z_vals.index(max_sharpe_ratio)
+        best_x = x_vals[max_index]
+        best_y = y_vals[max_index]
+
         # Display 3D scatter plot for Bayesian Optimization
         with st.expander("Surface Plot"):
             st.markdown(f'<p class="header-font">3D Visualization of Bayesian Optimization for {strategy_choice} Strategy</p>', unsafe_allow_html=True)
@@ -609,6 +615,17 @@ if st.sidebar.button("Run Optimization"):
                 text=[f'{space[0].name}: {x}, {space[1].name}: {y}, Sharpe Ratio: {z:.4f}' for x, y, z in zip(x_vals, y_vals, z_vals)],
                 hoverinfo='text'
             )])
+
+            # Highlight the highest Sharpe Ratio point
+            fig.add_trace(go.Scatter3d(
+                x=[best_x],
+                y=[best_y],
+                z=[max_sharpe_ratio],
+                mode='markers+text',
+                marker=dict(size=7, color='red'),
+                text=[f'Max Sharpe Ratio: {max_sharpe_ratio:.4f}'],
+                textposition='top center'
+            ))
 
             fig.update_layout(
                 scene=dict(
