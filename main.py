@@ -777,23 +777,12 @@ if st.sidebar.button("Run Optimization"):
     with st.expander("Best Parameter Combination"):
         if best_params:
             st.markdown('<p class="subheader-font">Best Parameter Combination</p>', unsafe_allow_html=True)
-            st.markdown("""
-                <table class="metrics-table">
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Value</th>
-                    </tr>
-                """, unsafe_allow_html=True)
-    
-            for key, value in best_params.items():
-                st.markdown(f"""
-                    <tr>
-                        <td>{key}</td>
-                        <td>{int(value)}</td>
-                    </tr>
-                """, unsafe_allow_html=True)
-    
-            st.markdown("</table>", unsafe_allow_html=True)
+            
+            # Convert the best_params dictionary into a DataFrame for neat display
+            params_df = pd.DataFrame(list(best_params.items()), columns=["Parameter", "Value"])
+            
+            # Display the DataFrame as a table
+            st.table(params_df)
         else:
             st.write("Run optimization to see results.")
     
