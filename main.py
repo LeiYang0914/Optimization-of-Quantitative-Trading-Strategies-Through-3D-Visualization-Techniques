@@ -775,13 +775,11 @@ if st.sidebar.button("Run Optimization"):
                 
     # 5. Show the Best parameter combination and Sharpe ratio
     st.markdown('<p class="subheader-font">Best Parameter Combination</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="metric-value">Best Parameters: {formatted_params}</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="metric-value">Sharpe Ratio: {sharpe_ratio:.4f}</p>', unsafe_allow_html=True)
     if best_params:
         # Format parameters and Sharpe Ratio
         formatted_params = ', '.join([f'{key}: {int(value)}' for key, value in best_params.items()])
-        st.write(f"**Best Parameters:** {formatted_params}")
-        st.write(f"**Sharpe Ratio:** {sharpe_ratio:.4f}")
+        st.markdown(f'<p class="metric-value">Best Parameters: {formatted_params}</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="metric-value">Sharpe Ratio: {sharpe_ratio:.4f}</p>', unsafe_allow_html=True)
     else:
         st.write("Run optimization to see results.")
 
