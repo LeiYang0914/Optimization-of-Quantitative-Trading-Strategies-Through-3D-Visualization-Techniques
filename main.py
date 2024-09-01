@@ -773,12 +773,27 @@ if st.sidebar.button("Run Optimization"):
                 st.markdown('<p class="header-font">Heatmap of Sharpe Ratio</p>', unsafe_allow_html=True)
                 plot_heatmap(results, space[0].name, space[1].name, 'Sharpe Ratio')
                 
-    # 5. Show the Best parameter combination
+    # 5. Show the Best parameter combination in a table format
     with st.expander("Best Parameter Combination"):
         if best_params:
-            # Format parameters
-            formatted_params = ', '.join([f'{key}: {int(value)}' for key, value in best_params.items()])
-            st.markdown(f'<p class="metric-value">Best Parameters: {formatted_params}</p>', unsafe_allow_html=True)
+            st.markdown('<p class="subheader-font">Best Parameter Combination</p>', unsafe_allow_html=True)
+            st.markdown("""
+                <table class="metrics-table">
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                    </tr>
+                """, unsafe_allow_html=True)
+    
+            for key, value in best_params.items():
+                st.markdown(f"""
+                    <tr>
+                        <td>{key}</td>
+                        <td>{int(value)}</td>
+                    </tr>
+                """, unsafe_allow_html=True)
+    
+            st.markdown("</table>", unsafe_allow_html=True)
         else:
             st.write("Run optimization to see results.")
     
