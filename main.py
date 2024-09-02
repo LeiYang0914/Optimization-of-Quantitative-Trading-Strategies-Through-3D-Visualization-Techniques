@@ -627,7 +627,7 @@ strategy_choice = st.sidebar.selectbox("Select Strategy", list(strategy_params.k
 # 4. Choose optimization method
 optimization_method = st.sidebar.radio(
     "Optimization Method",
-    ("Bayesian Optimization", "Permutation Testing (Grid Search CV)")
+    ("Bayesian Optimization", "Grid Search CV")
 )
 
 # Placeholder for results
@@ -707,7 +707,7 @@ if st.sidebar.button("Run Optimization"):
             )
             st.plotly_chart(fig)
 
-    elif optimization_method == "Permutation Testing (Grid Search CV)":
+    elif optimization_method == "Grid Search CV":
         param_grid = generate_param_grid(space)
 
         results = []
