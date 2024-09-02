@@ -633,6 +633,7 @@ optimization_method = st.sidebar.radio(
 # Placeholder for results
 best_params = {}
 sharpe_ratio = None
+metrics = {}
 
 # Perform the selected optimization
 if st.sidebar.button("Run Optimization"):
@@ -644,15 +645,16 @@ if st.sidebar.button("Run Optimization"):
         @use_named_args(space)
         def objective(**params):
             result = strategy_function(data.copy(), **params)
-            metrics = performance_metrics(result, selected_timeframe)
-            if np.isnan(metrics['Sharpe Ratio']):
+            local_metrics = performance_metrics(result, selected_timeframe)
+            if np.isnan(local_metrics['Sharpe Ratio']):
                 return 0
-            return -metrics['Sharpe Ratio']
+            return -local_metrics['Sharpe Ratio']
 
         res = gp_minimize(objective, space, n_calls=50, random_state=0)
         best_params = {dim.name: res.x[i] for i, dim in enumerate(space)}
         best_result = strategy_function(data.copy(), **best_params)
         sharpe_ratio = -res.fun
+        metrics = performance_metrics(best_result, selected_timeframe)
 
         # Extract the evaluated points and corresponding negative Sharpe Ratios
         x_vals = [point[0] for point in res.x_iters]
@@ -715,16 +717,17 @@ if st.sidebar.button("Run Optimization"):
 
         for params in ParameterGrid(param_grid):
             result = strategy_function(data.copy(), **params)
-            metrics = performance_metrics(result, selected_timeframe)
-            if not np.isnan(metrics['Sharpe Ratio']):
-                results.append((params, metrics['Sharpe Ratio']))
+            local_metrics = performance_metrics(result, selected_timeframe)
+            if not np.isnan(local_metrics['Sharpe Ratio']):
+                results.append((params, local_metrics['Sharpe Ratio']))
                 x_vals.append(params[space[0].name])
                 y_vals.append(params[space[1].name])
-                z_vals.append(metrics['Sharpe Ratio'])
+                z_vals.append(local_metrics['Sharpe Ratio'])
 
         if results:
             best_params, sharpe_ratio = max(results, key=lambda x: x[1])
             best_result = strategy_function(data.copy(), **best_params)
+            metrics = performance_metrics(best_result, selected_timeframe)
 
             # Create grid for surface plot
             x_grid, y_grid = np.meshgrid(np.unique(x_vals), np.unique(y_vals))
