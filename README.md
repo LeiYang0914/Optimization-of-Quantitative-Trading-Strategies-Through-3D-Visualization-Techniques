@@ -1,253 +1,270 @@
-# 
-📊 Optimization of Quantitative Trading Strategies Through 3D Visualization Techniques
+# 📊 Optimization of Quantitative Trading Strategies Through 3D Visualization Techniques
 
+![Python](https://img.shields.io/badge/Python-3.9-blue)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-This project explores the optimization of quantitative trading strategies in cryptocurrency markets using Bayesian Optimization, Grid Search Cross Validation, and interactive 3D visualization techniques.
+This project investigates how **quantitative trading strategies can be optimized using data-driven techniques and visual analytics**.  
+The research integrates **Bayesian Optimization, Grid Search Cross Validation, and 3D visualization** to analyze relationships between strategy parameters and trading performance.
 
-The research aims to improve the risk-adjusted performance of algorithmic trading strategies by identifying optimal parameter configurations using advanced data science and financial analytics methods.
+The objective is to **improve the risk-adjusted performance of algorithmic trading strategies** by identifying optimal parameter configurations through systematic experimentation.
 
-📌 Research Motivation
+---
 
-Financial markets are highly dynamic and volatile, making it difficult to design robust trading strategies. Traditional parameter tuning techniques often fail to capture the complex relationships between trading parameters and performance.
+# 📌 Research Motivation
 
-This project investigates how advanced optimization techniques and visual analytics can improve strategy development and decision-making.
+Financial markets are highly dynamic and volatile, making it difficult to design robust trading strategies.
 
-Research Question
+Traditional parameter tuning techniques often fail to capture the **complex relationships between trading parameters and performance metrics**.
 
-How can trading strategies be optimized in volatile cryptocurrency markets using data-driven optimization techniques and visual analytics?
+This research explores how **advanced optimization techniques combined with visual analytics** can help researchers and traders better understand the parameter space and improve trading strategy performance.
 
-🔬 Methodology
+### Research Question
 
-The system follows a structured research pipeline combining data engineering, financial modeling, optimization algorithms, and visualization techniques.
+> How can trading strategies be optimized in volatile cryptocurrency markets using **data-driven optimization techniques and visual analytics**?
 
-1️⃣ Data Collection
+---
 
-Historical cryptocurrency data is collected using the CCXT API, covering several years of Bitcoin market activity.
+# 🔬 Methodology
 
-Data sources include:
+The system follows a structured research pipeline combining **data engineering, financial modeling, optimization algorithms, and visualization techniques**.
 
-Cryptocurrency exchange historical data
+---
 
-OHLCV price data
+## 1️⃣ Data Collection
 
-Hourly market time series
+Historical cryptocurrency data is collected using the **CCXT API**, covering several years of Bitcoin market activity.
 
-2️⃣ Data Preprocessing
+The dataset includes:
+
+- Cryptocurrency exchange historical data  
+- OHLCV price data  
+- Hourly market time series  
+
+---
+
+## 2️⃣ Data Preprocessing
 
 The raw market data undergoes several preprocessing steps:
 
-Missing value cleaning
+- Missing value cleaning  
+- Timestamp alignment  
+- Log return transformation  
+- Feature engineering  
 
-Timestamp alignment
+These steps ensure the dataset is suitable for **financial modeling and algorithmic trading research**.
 
-Log return transformation
+---
 
-Feature engineering
+## 3️⃣ Strategy Development
 
-These steps ensure the dataset is suitable for financial modeling and algorithmic trading research.
+Two categories of trading strategies are implemented.
 
-3️⃣ Strategy Development
+### Momentum Strategies
 
-Two major categories of trading strategies are implemented.
-
-Momentum Strategies
-
-Momentum strategies exploit persistent market trends.
-
-Indicators used include:
-
-Moving Averages
-
-MACD
-
-These indicators help identify strong market movements and trend continuation.
-
-Mean Reversion Strategies
-
-Mean reversion strategies assume that asset prices tend to revert to their historical average levels.
+Momentum strategies attempt to capture **persistent market trends**.
 
 Indicators used include:
 
-Bollinger Bands
+- Moving Average  
+- MACD  
 
-RSI
+These indicators help identify **trend continuation opportunities**.
 
-These strategies are particularly useful in sideways or range-bound market conditions.
+---
 
-4️⃣ Parameter Optimization
+### Mean Reversion Strategies
 
-Two optimization approaches are applied to improve strategy performance.
+Mean reversion strategies assume that asset prices tend to **return to their historical average levels**.
 
-Grid Search Cross Validation
+Indicators used include:
 
-Exhaustive parameter search
+- Bollinger Bands  
+- RSI  
 
-Provides baseline optimization results
+These strategies are particularly effective in **sideways or ranging market environments**.
 
-Evaluates multiple combinations of strategy parameters
+---
 
-Bayesian Optimization
+## 4️⃣ Parameter Optimization
 
-Efficient exploration of parameter space
+Two optimization approaches are used to improve strategy performance.
 
-Faster convergence toward optimal parameter combinations
+### Grid Search Cross Validation
 
-Reduces computational cost compared to grid search
+- Exhaustive parameter search  
+- Evaluates multiple combinations of strategy parameters  
+- Provides baseline optimization results  
 
-Both methods aim to maximize the Sharpe Ratio, a widely used metric for evaluating risk-adjusted trading performance.
+### Bayesian Optimization
 
-📈 3D Visualization of Optimization Results
+- Efficient exploration of parameter space  
+- Faster convergence toward optimal parameters  
+- Reduces computational cost compared to grid search  
 
-A major contribution of this project is the use of 3D visualization techniques to analyze the optimization landscape.
+Both methods aim to maximize the **Sharpe Ratio**, a key metric for evaluating **risk-adjusted trading performance**.
 
-Instead of evaluating parameters using simple tables, the system generates 3D surface plots showing relationships between:
+---
 
-Strategy parameters
+# 📈 3D Visualization of Optimization Results
 
-Trading performance metrics
+A key contribution of this project is the use of **3D visualization techniques** to analyze the optimization landscape.
 
-Sharpe Ratio
+Instead of relying solely on numerical tables, the system generates **3D surface plots** to illustrate relationships between:
+
+- Strategy parameters  
+- Trading performance metrics  
+- Sharpe Ratio  
 
 These visualizations allow researchers to:
 
-Identify optimal parameter regions
+- Identify optimal parameter regions  
+- Understand parameter sensitivity  
+- Detect potential overfitting  
 
-Understand parameter sensitivity
+This approach improves **interpretability and decision-making** in quantitative strategy development.
 
-Detect potential overfitting
+---
 
-3D visual analysis makes strategy tuning more intuitive and interpretable.
+# 🖥 Streamlit Interactive Interface
 
-🖥 Streamlit Interactive Interface
-
-The project includes a Streamlit-based interactive dashboard.
+The project includes a **Streamlit-based dashboard** for interactive experimentation.
 
 Users can:
 
-Upload market data
+- Upload market datasets  
+- Select trading strategies  
+- Run optimization algorithms  
+- Visualize results in interactive 3D plots  
 
-Select trading strategies
+The dashboard provides a **user-friendly research environment** for exploring strategy performance.
 
-Run optimization algorithms
+---
 
-Visualize results in interactive 3D plots
+# 🌍 Real-World Testing
 
-This interface provides a user-friendly research environment for exploring strategy performance and parameter interactions.
-
-🌍 Real World Testing
-
-Optimized strategies are tested using the Cybotrade Cloud platform, which connects directly to cryptocurrency exchanges.
+Optimized strategies are tested using the **Cybotrade Cloud platform**, which connects directly to cryptocurrency exchanges.
 
 This enables:
 
-Live strategy deployment
+- Live strategy deployment  
+- Automated trading execution  
+- Validation beyond historical backtesting  
 
-Automated trading execution
+Real-world testing ensures that the strategies remain **robust under live market conditions**.
 
-Validation beyond historical backtesting
+---
 
-Real-world testing ensures that the strategies remain practical and robust in live market environments.
-
-🧠 System Architecture
+# 🧠 System Architecture
 Market Data (CCXT)
-        ↓
+↓
 Data Preprocessing
-        ↓
+↓
 Strategy Development
-        ↓
+↓
 Parameter Optimization
 (Grid Search / Bayesian Optimization)
-        ↓
+↓
 Backtesting
-        ↓
+↓
 3D Visualization
-        ↓
+↓
 Streamlit Dashboard
-        ↓
+↓
 Real Market Testing (Cybotrade)
-⚙️ Technologies Used
-Technology	Purpose
-Python	Core programming language
-Pandas	Data processing
-NumPy	Numerical computation
-Scikit-learn	Optimization tools
-Bayesian Optimization	Strategy parameter tuning
-CCXT	Cryptocurrency market data API
-Streamlit	Interactive dashboard
-Plotly	3D visualization
-Matplotlib	Data visualization
-📂 Project Structure
+
+---
+
+# ⚙️ Technologies Used
+
+| Technology | Purpose |
+|------------|--------|
+| Python | Core programming language |
+| Pandas | Data processing |
+| NumPy | Numerical computation |
+| Scikit-learn | Optimization tools |
+| Bayesian Optimization | Strategy parameter tuning |
+| CCXT | Cryptocurrency market data API |
+| Streamlit | Interactive dashboard |
+| Plotly | 3D visualization |
+| Matplotlib | Data visualization |
+
+---
+
+# 📂 Project Structure
 Optimization-of-Quantitative-Trading-Strategies
 │
 ├── data
-│   └── btc_1H_may2020_to_current.csv
+│ └── btc_1H_may2020_to_current.csv
 │
 ├── notebooks
-│   └── Extract_data.ipynb
+│ └── Extract_data.ipynb
 │
 ├── src
-│   └── main.py
+│ └── main.py
 │
 ├── requirements.txt
 │
 ├── docs
-│   ├── project_poster.pdf
-│   └── final_report.pdf
+│ ├── project_poster.pdf
+│ └── final_report.pdf
 │
 └── README.md
-🚀 Installation
+
+
+---
+
+# 🚀 Installation
 
 Clone the repository
 
 git clone https://github.com/LeiYang0914/Optimization-of-Quantitative-Trading-Strategies-Through-3D-Visualization-Techniques.git
 
-Install dependencies
 
+Install dependencies
 pip install -r requirements.txt
 
 Run the project
-
 python main.py
 
 Run Streamlit dashboard
-
 streamlit run app.py
-🔭 Future Research Directions
 
-Future improvements may include:
 
-Reinforcement learning based trading strategies
+---
 
-Multi-asset portfolio optimization
+# 🔭 Future Research Directions
 
-Real-time strategy optimization
+Possible future improvements include:
 
-Advanced visualization techniques for financial analytics
+- Reinforcement learning based trading strategies  
+- Multi-asset portfolio optimization  
+- Real-time strategy optimization  
+- Advanced visualization for financial analytics  
+- Machine learning based alpha generation  
 
-Machine learning based alpha generation
+---
 
-👨‍💻 Author
+# 👨‍💻 Author
 
-Chan Li Yang
+**Chan Li Yang**
 
 Bachelor of Computer Science (Data Science)
 
-Research Interests
+Research Interests:
 
-Quantitative Finance
+- Quantitative Finance  
+- Financial Machine Learning  
+- Algorithmic Trading  
+- Data Visualization  
 
-Financial Machine Learning
+---
 
-Algorithmic Trading
-
-Data Visualization
-
-📄 Documentation
+# 📄 Documentation
 
 Full research materials:
 
-Project Poster
+- Project Poster  
+- Final Year Project Report  
 
-Final Year Project Report
-
-These documents describe the complete methodology, experiment design, and evaluation results.
+These documents describe the **complete methodology, experimental design, and evaluation results**.
